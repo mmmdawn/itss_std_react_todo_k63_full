@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
 /* コンポーネント */
 import TodoItem from './TodoItem';
 import Input from './Input';
 import Filter from './Filter';
 
-/* カスタムフック */
-import useStorage from '../hooks/storage';
-
-/* ライブラリ */
+import useFirebaseStorage from '../hooks/firebaseStorage';
 import {getKey} from "../lib/util";
 
 function Todo() {
-  const [items, putItems, clearItems] = useStorage();
-  
+  const [items, addItem, updateItem, clearItems] = useFirebaseStorage();
+
   const [filter, setFilter] = React.useState('ALL');
 
   const displayItems = items.filter(item => {
@@ -21,22 +18,16 @@ function Todo() {
     if (filter === 'TODO') return !item.done;
     if (filter === 'DONE') return item.done;
   });
-  
-  const handleCheck = checked => {
-    const newItems = items.map(item => {
-      if (item.key === checked.key) {
-        item.done = !item.done;
-      }
-      return item;
-    });
-    putItems(newItems);
+
+  const handleCheck = (changedItem) => {
+    updateItem(changedItem);
   };
-  
-  const handleAdd = text => {
-    putItems([...items, { key: getKey(), text, done: false }]);
-  };
-  
-  const handleFilterChange = value => setFilter(value);
+
+  const handleAdd = (text) => {
+    addItem({text, done: false});
+  }
+
+  const handleFilterChange = (value) => {setFilter(value)}
 
   return (
     <article class="panel is-danger">
@@ -54,8 +45,8 @@ function Todo() {
         value={filter}
       />
       {displayItems.map(item => (
-        <TodoItem 
-          key={item.key}
+        <TodoItem
+          key={item.id}
           item={item}
           onCheck={handleCheck}
         />
